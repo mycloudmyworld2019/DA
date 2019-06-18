@@ -1,0 +1,21 @@
+[submodule "lib/DA-test"]
+	path = lib/DA-test
+	url = https://github.com/dapphub/DA-test
+[submodule "lib/DA-auth"]
+	path = lib/DA-auth
+	url = https://github.com/dapphub/DA-auth
+[submodule "lib/DA-math"]
+	path = lib/DA-math
+	url = https://github.com/dapphub/DA-math
+[submodule "lib/DA-token"]
+	path = lib/DA-token
+	url = https://github.com/dapphub/DA-token
+[submodule "lib/DA-exec"]
+	path = lib/DA-exec
+	url = https://github.com/dapphub/DA-exec
+[submodule "lib/DA-guard"]
+	path = lib/DA-guard
+	url = https://github.com/dapphub/DA-guard
+[submodule "lib/gnosis-multisig"]
+	path = lib/gnosis-multisig
+	url = https://github.com/dapphub/gnosis-multisig

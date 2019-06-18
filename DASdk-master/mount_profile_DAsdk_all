@@ -1,0 +1,35 @@
+agentName:DASdk-%sliceId
+
+Include: DASdk_acl.include
+Include: DASdk_agent.include
+Include: DASdk_class_map.include
+Include: DASdk_decap_group.include
+Include: DASdk_directflow.include
+Include: DASdk_eth_intf.include
+Include: DASdk_eth_lag_intf.include
+Include: DASdk_eth_phy_intf.include
+Include: DASdk_fib.include
+Include: DASdk_hardware_table.include
+Include: DASdk_intf.include
+Include: DASdk_IntfMgrHelper.include
+Include: DASdk_ip_intf.include
+Include: DASdk_ip_route.include
+Include: DASdk_lldp.include
+Include: DASdk_macsec.include
+Include: DASdk_mac_table.include
+Include: DASdk_mlag.include
+Include: DASdk_mpls_route.include
+Include: DASdk_neighbor_table.include
+Include: DASdk_nexthop_group.include
+Include: DASdk_policy_map.include
+Include: DASdk_subintf.include
+Include: DASdk_system.include
+Include: DASdk_vrf.include
+Include: DASdk_GOpenFlow.include
+Include: DASdk_bfd_session.include
+
+# for mlag/status, Mlag::Status, r
+Include: MlagStatus-include
+
+# for interface support with DASdk_IntfMgrHelper.include
+Include: AgentPlugin-IntfCollections-*

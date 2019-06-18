@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+# Copyright (c) 2013 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+""" Implements a simple Echo bot script. This script does not handle
+write errors as EchoBot.cpp does. """
+
+import DAsdk
+
+import socket
+import sys
+
+ECHO_MSG = "You said: "
+LISTEN_PORT = 10000
+IDLE_TIMEOUT = 10
+LISTEN_BACKLOG = 5
+MAX_BUF_SIZE = 1024
+DELIMETER = "EOF"
+
+
+class EchoBot(DAsdk.TimeoutHandler, DAsdk.FdHandler):
+   def __init__(self, timeoutMgr):
+      print "initializing..."
+      DAsdk.TimeoutHandler.__init__(self, timeoutMgr)
+      DAsdk.FdHandler.__init__(self)
+      self.server = self._createServer()
+      self.watch_readable(self.server.fileno(), True)
+      self.connectedSocket = None
+      print "initialized with server=%d" % self.server.fileno()
+      self.msg = ""
+
+   def on_readable(self, fd):
+      print "onReadable called"
+      if fd == self.server.fileno():
+         assert not self.connectedSocket, ("Should not be readable if we "
+                                           "already have a connection")
+         self._acceptConnection()
+      elif fd == self.connectedSocket.fileno():
+         data = self.connectedSocket.recv(MAX_BUF_SIZE - len(ECHO_MSG))
+         print "Client said: %r" % data
+         if not data:
+            self._endConnection()
+            return
+         msgParts = data.split(DELIMETER)
+         if len(msgParts) > 1:
+            # There was an "EOF" in the message!
+            self.connectedSocket.send(ECHO_MSG + self.msg + msgParts[0])
+            self.msg = ""
+            for msgPart in msgParts[1 : -1]:
+               # Send any other complete messages received.
+               self.connectedSocket.send(ECHO_MSG + msgPart)
+         # Save the last part of msgParts until we get an EOF in a
+         # future message. If the message ended in an EOF, this is a
+         # no-op and appends an empty string.
+         self.msg += msgParts[-1]
+         self.timeout_time_is(DAsdk.now() + IDLE_TIMEOUT)
+      else:
+         assert False, "Unknown fd %d is readable" % fd
+
+   def on_timeout(self):
+      print "Timer called"
+      assert self.connectedSocket
+      self._endConnection()
+
+   def _acceptConnection(self):
+      print "Accepting connection"
+      assert not self.connectedSocket
+      self.watch_readable(self.server.fileno(), False)
+      newFd, _ = self.server.accept()
+      newFd.setblocking(0)
+      self.connectedSocket = newFd
+      self.watch_readable(newFd.fileno(), True)
+      self.timeout_time_is(DAsdk.now() + IDLE_TIMEOUT)
+
+   def _endConnection(self):
+      fd = self.connectedSocket.fileno()
+      print "end connection to connected socket %d" % fd
+      self.watch_readable(fd, False)
+      self.connectedSocket.close()
+      self.connectedSocket = None
+      # Start listening for new connections again
+      self.watch_readable(self.server.fileno(), True)
+      self.timeout_time_is(DAsdk.never)
+
+   def _createServer(self):
+      print "Creating server"
+      s = socket.socket()
+      s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+      s.setblocking(0)
+      s.bind(("", LISTEN_PORT))
+      s.listen(LISTEN_BACKLOG)
+      return s
+
+sdk = DAsdk.Sdk()
+echoBot = EchoBot(sdk.get_timeout_mgr())
+sdk.main_loop(sys.argv)
